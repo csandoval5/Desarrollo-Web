@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Formulario{% endblock %}
+{% block content %}
+<h2>Formulario de Contacto</h2>
+<form method="POST" action="{{ url_for('formulario') }}">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.name.label }}<br>
+        {{ form.name(size=32) }}
+    </div>
+    <div>
+        {{ form.email.label }}<br>
+        {{ form.email(size=32) }}
+    </div>
+    <div>
+        {{ form.message.label }}<br>
+        {{ form.message(size=64) }}
+    </div>
+    <div>
+        {{ form.submit() }}
+    </div>
+</form>
+{% endblock %}
