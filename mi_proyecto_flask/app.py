@@ -9,8 +9,8 @@ import csv
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 
-# Configuración de la base de datos SQLite
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+# Configuración de la base de datos MySQL
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Web123456789@localhost/desarrollo_web'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -76,7 +76,7 @@ def formulario():
             writer = csv.writer(file)
             writer.writerow([name, email, message])
 
-        # Guardar datos en SQLite
+        # Guardar datos en MySQL
         nuevo_contacto = Contacto(name=name, email=email, message=message)
         db.session.add(nuevo_contacto)
         db.session.commit()
@@ -118,12 +118,22 @@ def leer_csv():
             data_list.append(row)
     return render_template('mostrar.html', data=data_list)
 
-# Ruta para leer datos desde SQLite
-@app.route('/leer_sqlite')
-def leer_sqlite():
+# Ruta para leer datos desde MySQL
+@app.route('/leer_mysql')
+def leer_mysql():
     contactos = Contacto.query.all()  # Obtener todos los registros
     return render_template('mostrar_sqlite.html', contactos=contactos)
 
+# Ruta para verificar la conexión a MySQL
+@app.route('/test_db')
+def test_db():
+    try:
+        conexion = db.engine.connect()
+        return "¡Conexión exitosa a la base de datos!"
+    except Exception as e:
+        return f"Error al conectar con la base de datos: {e}"
+
 if __name__ == '__main__':
     app.run(debug=True)
+
 
