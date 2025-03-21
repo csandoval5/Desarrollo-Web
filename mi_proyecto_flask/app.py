@@ -54,7 +54,7 @@ class ContactForm(FlaskForm):
 # Ruta principal
 @app.route('/')
 def home():
-    return "Hola mundo, esta es mi tarea de Desarrollo de Aplicaciones Web"
+    return "Hola mundo, esta es mi tarea de la semana 12"
 
 # Ruta index
 @app.route('/index')
@@ -167,5 +167,3 @@ def test_db():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
