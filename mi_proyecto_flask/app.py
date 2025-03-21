@@ -54,7 +54,7 @@ class ContactForm(FlaskForm):
 # Ruta principal
 @app.route('/')
 def home():
-    return "Hola mundo, esta es mi tarea de la semana 12"
+    return "Hola mundo, esta es mi tarea de Desarrollo de Aplicaciones Web"
 
 # Ruta index
 @app.route('/index')
