@@ -20,7 +20,7 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'  # Ruta de la vista de inicio de sesión
+login_manager.login_view = 'login'
 
 # Modelo para la tabla de contactos
 class Contacto(db.Model):
@@ -34,6 +34,13 @@ class Usuario(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
+
+# Modelo para la tabla de productos
+class Producto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    precio = db.Column(db.Float, nullable=False)
+    descripcion = db.Column(db.String(300), nullable=True)
 
 # Crear las tablas en la base de datos
 with app.app_context():
@@ -164,6 +171,50 @@ def test_db():
         return "¡Conexión exitosa a la base de datos!"
     except Exception as e:
         return f"Error al conectar con la base de datos: {e}"
+
+# Rutas para el CRUD de productos
+@app.route('/crear', methods=['GET', 'POST'])
+def crear_producto():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        precio = request.form['precio']
+        descripcion = request.form['descripcion']
+
+        if not nombre or not precio:
+            flash('El nombre y el precio son obligatorios.', 'danger')
+        else:
+            nuevo_producto = Producto(nombre=nombre, precio=float(precio), descripcion=descripcion)
+            db.session.add(nuevo_producto)
+            db.session.commit()
+            flash('Producto creado exitosamente.', 'success')
+            return redirect(url_for('ver_productos'))
+
+    return render_template('crear.html')
+
+@app.route('/productos')
+def ver_productos():
+    productos = Producto.query.all()
+    return render_template('productos.html', productos=productos)
+
+@app.route('/editar/<int:id>', methods=['GET', 'POST'])
+def editar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    if request.method == 'POST':
+        producto.nombre = request.form['nombre']
+        producto.precio = request.form['precio']
+        producto.descripcion = request.form['descripcion']
+        db.session.commit()
+        flash('Producto actualizado exitosamente.', 'success')
+        return redirect(url_for('ver_productos'))
+    return render_template('editar.html', producto=producto)
+
+@app.route('/eliminar/<int:id>', methods=['POST'])
+def eliminar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    db.session.delete(producto)
+    db.session.commit()
+    flash('Producto eliminado exitosamente.', 'info')
+    return redirect(url_for('ver_productos'))
 
 if __name__ == '__main__':
     app.run(debug=True)
