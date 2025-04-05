@@ -58,28 +58,34 @@ class ContactForm(FlaskForm):
     message = StringField('Mensaje', validators=[DataRequired()])
     submit = SubmitField('Enviar')
 
-# Ruta principal
+# Ruta principal redirigiendo al login si el usuario no está autenticado
 @app.route('/')
 def home():
-    return "Hola mundo, esta es mi tarea de Desarrollo de Aplicaciones Web"
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
+    return render_template('index.html')
 
 # Ruta index
 @app.route('/index')
+@login_required
 def index():
     return render_template('index.html')
 
 # Ruta about
 @app.route('/about')
+@login_required
 def about():
     return render_template('about.html')
 
 # Ruta personalizada
 @app.route('/Cristian')
+@login_required
 def usuario():
     return 'Bienvenido, Cristian Sandoval!'
 
 # Ruta del formulario de contacto
 @app.route('/formulario', methods=['GET', 'POST'])
+@login_required
 def formulario():
     form = ContactForm()
     if form.validate_on_submit():
@@ -87,17 +93,15 @@ def formulario():
         email = form.email.data
         message = form.message.data
 
-        # Guardar datos en TXT
+        # Guardar datos en TXT, JSON y CSV
         with open('datos/datos.txt', 'a') as file:
             file.write(f'Nombre: {name}, Correo: {email}, Mensaje: {message}\n')
 
-        # Guardar datos en JSON
         data = {"Nombre": name, "Correo": email, "Mensaje": message}
         with open('datos/datos.json', 'a') as file:
             json.dump(data, file)
             file.write('\n')
 
-        # Guardar datos en CSV
         with open('datos/datos.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([name, email, message])
@@ -112,6 +116,7 @@ def formulario():
 
 # Ruta para mostrar resultado del formulario
 @app.route('/resultado')
+@login_required
 def resultado():
     name = request.args.get('name')
     email = request.args.get('email')
@@ -144,7 +149,7 @@ def login():
         if usuario and bcrypt.check_password_hash(usuario.password, password):
             login_user(usuario)
             flash('Inicio de sesión exitoso', 'success')
-            return redirect(url_for('perfil'))
+            return redirect(url_for('index'))
         else:
             flash('Credenciales incorrectas', 'danger')
     return render_template('login.html')
@@ -160,11 +165,12 @@ def perfil():
 @login_required
 def logout():
     logout_user()
-    flash('Sesión cerrada exitosamente', 'info')
+    flash('Sesión cerrada exitosamente.', 'info')
     return redirect(url_for('login'))
 
 # Ruta para verificar la conexión a MySQL
 @app.route('/test_db')
+@login_required
 def test_db():
     try:
         conexion = db.engine.connect()
@@ -172,8 +178,9 @@ def test_db():
     except Exception as e:
         return f"Error al conectar con la base de datos: {e}"
 
-# Rutas para el CRUD de productos
+# CRUD de productos protegido
 @app.route('/crear', methods=['GET', 'POST'])
+@login_required
 def crear_producto():
     if request.method == 'POST':
         nombre = request.form['nombre']
@@ -192,11 +199,13 @@ def crear_producto():
     return render_template('crear.html')
 
 @app.route('/productos')
+@login_required
 def ver_productos():
     productos = Producto.query.all()
     return render_template('productos.html', productos=productos)
 
 @app.route('/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
 def editar_producto(id):
     producto = Producto.query.get_or_404(id)
     if request.method == 'POST':
@@ -209,6 +218,7 @@ def editar_producto(id):
     return render_template('editar.html', producto=producto)
 
 @app.route('/eliminar/<int:id>', methods=['POST'])
+@login_required
 def eliminar_producto(id):
     producto = Producto.query.get_or_404(id)
     db.session.delete(producto)
